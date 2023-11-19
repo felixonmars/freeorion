@@ -1930,7 +1930,7 @@ bool ServerApp::EliminatePlayer(const PlayerConnectionPtr& player_connection) {
         m_universe.RecursiveDestroy(id, m_empires.EmpireIDs());
 #else
         const auto& empire_ids = m_empires.EmpireIDs();
-        const std::vector<const int> st(empire_ids.begin(), empire_ids.end());
+        const std::vector<const> st(empire_ids.begin(), empire_ids.end());
         m_universe.RecursiveDestroy(id, std::span<const int>(st));
 #endif
     };
@@ -2593,12 +2593,11 @@ namespace {
         // modified objects / combat results to empires' known gamestate
         // ObjectMaps.
 
-        const auto empire_ids = 
 #if (!defined(__clang_major__) || (__clang_major__ >= 16)) && (BOOST_VERSION >= 107700)
-            std::span<const int>(empires.EmpireIDs());
+        const auto empire_ids = std::span<const int>(empires.EmpireIDs());
 #else
-            [empires_ids_vec{std::vector<int>(empires.EmpireIDs().begin(), empires.EmpireIDs().end())}]()
-            { return std::span<const int>(empires_ids_vec.begin(), empires_ids_vec.end()); }();
+        const std::vector<int> empire_ids_vec(empires.EmpireIDs().begin(), empires.EmpireIDs().end());
+        const auto empire_ids = std::span<const int>(empire_ids_vec);
 #endif
 
         for (const CombatInfo& combat_info : combats) {
