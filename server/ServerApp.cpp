@@ -1930,8 +1930,9 @@ bool ServerApp::EliminatePlayer(const PlayerConnectionPtr& player_connection) {
         m_universe.RecursiveDestroy(id, m_empires.EmpireIDs());
 #else
         const auto& empire_ids = m_empires.EmpireIDs();
-        const std::vector<const> st(empire_ids.begin(), empire_ids.end());
-        m_universe.RecursiveDestroy(id, std::span<const int>(st));
+        const std::vector<int> empire_ids_vec(empire_ids.begin(), empire_ids.end());
+        const std::span<const int> empire_ids_span(empire_ids_vec);
+        m_universe.RecursiveDestroy(id, empire_ids_span);
 #endif
     };
 
