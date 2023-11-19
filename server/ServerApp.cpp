@@ -3091,14 +3091,13 @@ namespace {
         Universe& universe = context.ContextUniverse();
         ObjectMap& objects = context.ContextObjects();
         EmpireManager& empires = context.Empires();
-        const auto empire_ids = 
 #if (!defined(__clang_major__) || (__clang_major__ >= 16)) && (BOOST_VERSION >= 107700)
-            std::span<const int>(context.EmpireIDs());
+        const std::span<const int> empire_ids(context.EmpireIDs());
 #else
-            [empires_ids_vec{std::vector<int>(context.EmpireIDs().begin(), context.EmpireIDs().end())}]()
-            { return std::span<const int>(empires_ids_vec.begin(), empires_ids_vec.end()); }();
+        const auto& empire_ids_fs = context.EmpireIDs();
+        const std::vector<int> empire_ids_vec(empire_ids_fs.begin(), empire_ids_fs.end());
+        const std::span<const int> empire_ids(empire_ids_vec);
 #endif
-
 
         // collect ships that are invading and the troops they carry
         for (auto* ship : objects.findRaw<Ship>([&universe](const Ship& s) {
@@ -3143,13 +3142,13 @@ namespace {
                 if (fleet->Empty()) {
                     if (system)
                         system->Remove(fleet->ID());
-                    universe.Destroy(fleet->ID(), std::span(empire_ids));
+                    universe.Destroy(fleet->ID(), empire_ids);
                 }
             }
             if (system)
                 system->Remove(ship->ID());
 
-            universe.RecursiveDestroy(ship->ID(), std::span(empire_ids)); // does not count as ship loss for empire/species
+            universe.RecursiveDestroy(ship->ID(), empire_ids); // does not count as ship loss for empire/species
         }
 
         // store invasion info in empires
