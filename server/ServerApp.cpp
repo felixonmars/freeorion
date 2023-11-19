@@ -3441,14 +3441,13 @@ namespace {
                          const std::span<const int> annexed_planet_ids) // TODO: disallow scrapping during annexation
     {
         ObjectMap& objects{universe.Objects()};
-        const auto empire_ids = 
 #if (!defined(__clang_major__) || (__clang_major__ >= 16)) && (BOOST_VERSION >= 107700)
-            std::span<const int>(empires.EmpireIDs());
+        const std::span<const int> empire_ids(empires.EmpireIDs());
 #else
-            [empires_ids_vec{std::vector<int>(empires.EmpireIDs().begin(), empires.EmpireIDs().end())}]()
-            { return std::span<const int>(empires_ids_vec.begin(), empires_ids_vec.end()); }();
+        const auto& empire_ids_fs = empires.EmpireIDs();
+        const std::vector<int> empire_ids_vec(empire_ids_fs.begin(), empire_ids_fs.end());
+        const std::span<const int> empire_ids(empire_ids_vec);
 #endif
-
 
         // only scap ships that aren't being gifted and that aren't invading or colonizing this turn
         const auto scrapped_ships = objects.findRaw<Ship>(
