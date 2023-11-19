@@ -2909,12 +2909,12 @@ namespace {
     [[nodiscard]] std::pair<std::vector<int>, std::vector<int>> HandleColonization(ScriptingContext& context) {
         Universe& universe = context.ContextUniverse();
         ObjectMap& objects = context.ContextObjects();
-        const auto empire_ids = 
 #if (!defined(__clang_major__) || (__clang_major__ >= 16)) && (BOOST_VERSION >= 107700)
-            std::span<const int>(context.EmpireIDs());
+        const std::span<const int> empire_ids(context.EmpireIDs());
 #else
-            [empires_ids_vec{std::vector<int>(context.EmpireIDs().begin(), context.EmpireIDs().end())}]()
-            { return std::span<const int>(empires_ids_vec.begin(), empires_ids_vec.end()); }();
+        const auto& empire_ids_fs = context.EmpireIDs();
+        const std::vector<int> empire_ids_vec(empire_ids_fs.begin(), empire_ids_fs.end());
+        const std::span<const int> empire_ids(empire_ids_vec);
 #endif
 
         // collect, for each planet, what ships have been ordered to colonize it
